@@ -181,9 +181,8 @@ data LibrarySection = LibrarySection {
 , librarySectionSignatures :: Maybe (List String)
 } deriving (Eq, Show, Generic, FromValue)
 
-instance Monoid LibrarySection where
-  mempty = LibrarySection Nothing Nothing Nothing Nothing Nothing Nothing Nothing
-  mappend a b = LibrarySection {
+instance Semigroup LibrarySection where
+  a <> b = LibrarySection {
       librarySectionExposed = librarySectionExposed b <|> librarySectionExposed a
     , librarySectionExposedModules = librarySectionExposedModules a <> librarySectionExposedModules b
     , librarySectionGeneratedExposedModules = librarySectionGeneratedExposedModules a <> librarySectionGeneratedExposedModules b
@@ -193,19 +192,24 @@ instance Monoid LibrarySection where
     , librarySectionSignatures = librarySectionSignatures a <> librarySectionSignatures b
     }
 
+instance Monoid LibrarySection where
+  mempty = LibrarySection Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
 data ExecutableSection = ExecutableSection {
   executableSectionMain :: Maybe FilePath
 , executableSectionOtherModules :: Maybe (List String)
 , executableSectionGeneratedOtherModules :: Maybe (List String)
 } deriving (Eq, Show, Generic, FromValue)
 
-instance Monoid ExecutableSection where
-  mempty = ExecutableSection Nothing Nothing Nothing
-  mappend a b = ExecutableSection {
+instance Semigroup ExecutableSection where
+  a <> b = ExecutableSection {
       executableSectionMain = executableSectionMain b <|> executableSectionMain a
     , executableSectionOtherModules = executableSectionOtherModules a <> executableSectionOtherModules b
     , executableSectionGeneratedOtherModules = executableSectionGeneratedOtherModules a <> executableSectionGeneratedOtherModules b
     }
+
+instance Monoid ExecutableSection where
+  mempty = ExecutableSection Nothing Nothing Nothing
 
 data VerbatimValue =
     VerbatimString String
@@ -263,6 +267,33 @@ data CommonOptions cSources jsSources a = CommonOptions {
 type ParseCommonOptions = CommonOptions ParseCSources ParseJsSources
 instance FromValue a => FromValue (ParseCommonOptions a)
 
+instance (Semigroup cSources, Semigroup jsSources) => Semigroup (CommonOptions cSources jsSources a) where
+  a <> b = CommonOptions {
+    commonOptionsSourceDirs = commonOptionsSourceDirs a <> commonOptionsSourceDirs b
+  , commonOptionsDependencies = commonOptionsDependencies b <> commonOptionsDependencies a
+  , commonOptionsPkgConfigDependencies = commonOptionsPkgConfigDependencies a <> commonOptionsPkgConfigDependencies b
+  , commonOptionsDefaultExtensions = commonOptionsDefaultExtensions a <> commonOptionsDefaultExtensions b
+  , commonOptionsOtherExtensions = commonOptionsOtherExtensions a <> commonOptionsOtherExtensions b
+  , commonOptionsGhcOptions = commonOptionsGhcOptions a <> commonOptionsGhcOptions b
+  , commonOptionsGhcProfOptions = commonOptionsGhcProfOptions a <> commonOptionsGhcProfOptions b
+  , commonOptionsGhcjsOptions = commonOptionsGhcjsOptions a <> commonOptionsGhcjsOptions b
+  , commonOptionsCppOptions = commonOptionsCppOptions a <> commonOptionsCppOptions b
+  , commonOptionsCcOptions = commonOptionsCcOptions a <> commonOptionsCcOptions b
+  , commonOptionsCSources = commonOptionsCSources a <> commonOptionsCSources b
+  , commonOptionsJsSources = commonOptionsJsSources a <> commonOptionsJsSources b
+  , commonOptionsExtraLibDirs = commonOptionsExtraLibDirs a <> commonOptionsExtraLibDirs b
+  , commonOptionsExtraLibraries = commonOptionsExtraLibraries a <> commonOptionsExtraLibraries b
+  , commonOptionsExtraFrameworksDirs = commonOptionsExtraFrameworksDirs a <> commonOptionsExtraFrameworksDirs b
+  , commonOptionsFrameworks = commonOptionsFrameworks a <> commonOptionsFrameworks b
+  , commonOptionsIncludeDirs = commonOptionsIncludeDirs a <> commonOptionsIncludeDirs b
+  , commonOptionsInstallIncludes = commonOptionsInstallIncludes a <> commonOptionsInstallIncludes b
+  , commonOptionsLdOptions = commonOptionsLdOptions a <> commonOptionsLdOptions b
+  , commonOptionsBuildable = commonOptionsBuildable b <|> commonOptionsBuildable a
+  , commonOptionsWhen = commonOptionsWhen a <> commonOptionsWhen b
+  , commonOptionsBuildTools = commonOptionsBuildTools b <> commonOptionsBuildTools a
+  , commonOptionsVerbatim = commonOptionsVerbatim a <> commonOptionsVerbatim b
+  }
+
 instance (Monoid cSources, Monoid jsSources) => Monoid (CommonOptions cSources jsSources a) where
   mempty = CommonOptions {
     commonOptionsSourceDirs = Nothing
@@ -288,31 +319,6 @@ instance (Monoid cSources, Monoid jsSources) => Monoid (CommonOptions cSources j
   , commonOptionsWhen = Nothing
   , commonOptionsBuildTools = Nothing
   , commonOptionsVerbatim = Nothing
-  }
-  mappend a b = CommonOptions {
-    commonOptionsSourceDirs = commonOptionsSourceDirs a <> commonOptionsSourceDirs b
-  , commonOptionsDependencies = commonOptionsDependencies b <> commonOptionsDependencies a
-  , commonOptionsPkgConfigDependencies = commonOptionsPkgConfigDependencies a <> commonOptionsPkgConfigDependencies b
-  , commonOptionsDefaultExtensions = commonOptionsDefaultExtensions a <> commonOptionsDefaultExtensions b
-  , commonOptionsOtherExtensions = commonOptionsOtherExtensions a <> commonOptionsOtherExtensions b
-  , commonOptionsGhcOptions = commonOptionsGhcOptions a <> commonOptionsGhcOptions b
-  , commonOptionsGhcProfOptions = commonOptionsGhcProfOptions a <> commonOptionsGhcProfOptions b
-  , commonOptionsGhcjsOptions = commonOptionsGhcjsOptions a <> commonOptionsGhcjsOptions b
-  , commonOptionsCppOptions = commonOptionsCppOptions a <> commonOptionsCppOptions b
-  , commonOptionsCcOptions = commonOptionsCcOptions a <> commonOptionsCcOptions b
-  , commonOptionsCSources = commonOptionsCSources a <> commonOptionsCSources b
-  , commonOptionsJsSources = commonOptionsJsSources a <> commonOptionsJsSources b
-  , commonOptionsExtraLibDirs = commonOptionsExtraLibDirs a <> commonOptionsExtraLibDirs b
-  , commonOptionsExtraLibraries = commonOptionsExtraLibraries a <> commonOptionsExtraLibraries b
-  , commonOptionsExtraFrameworksDirs = commonOptionsExtraFrameworksDirs a <> commonOptionsExtraFrameworksDirs b
-  , commonOptionsFrameworks = commonOptionsFrameworks a <> commonOptionsFrameworks b
-  , commonOptionsIncludeDirs = commonOptionsIncludeDirs a <> commonOptionsIncludeDirs b
-  , commonOptionsInstallIncludes = commonOptionsInstallIncludes a <> commonOptionsInstallIncludes b
-  , commonOptionsLdOptions = commonOptionsLdOptions a <> commonOptionsLdOptions b
-  , commonOptionsBuildable = commonOptionsBuildable b <|> commonOptionsBuildable a
-  , commonOptionsWhen = commonOptionsWhen a <> commonOptionsWhen b
-  , commonOptionsBuildTools = commonOptionsBuildTools b <> commonOptionsBuildTools a
-  , commonOptionsVerbatim = commonOptionsVerbatim a <> commonOptionsVerbatim b
   }
 
 type ParseCSources = Maybe (List FilePath)
@@ -414,9 +420,11 @@ instance FromValue a => FromValue (ParseThenElse a)
 data Empty = Empty
   deriving (Eq, Show)
 
+instance Semigroup Empty where
+  Empty <> Empty = Empty
+
 instance Monoid Empty where
   mempty = Empty
-  mappend Empty Empty = Empty
 
 instance FromValue Empty where
   fromValue _ = return Empty
