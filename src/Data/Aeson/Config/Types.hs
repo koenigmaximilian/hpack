@@ -25,9 +25,11 @@ fromMaybeList = maybe [] fromList
 data Product a b = Product a b
   deriving (Eq, Show, Functor, Foldable, Traversable)
 
+instance (Semigroup a, Semigroup b) => Semigroup (Product a b) where
+  Product a1 b1 <> Product a2 b2 = Product (a1 <> a2) (b1 <> b2)
+  
 instance (Monoid a, Monoid b) => Monoid (Product a b) where
   mempty = Product mempty mempty
-  Product a1 b1 `mappend` Product a2 b2 = Product (a1 <> a2) (b1 <> b2)
 
 instance Bifunctor Product where
   bimap fa fb (Product a b) = Product (fa a) (fb b)
