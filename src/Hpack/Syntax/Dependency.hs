@@ -32,7 +32,7 @@ githubBaseUrl = "https://github.com/"
 
 newtype Dependencies = Dependencies {
   unDependencies :: Map String DependencyVersion
-} deriving (Eq, Show, Monoid)
+} deriving (Eq, Show, Monoid, Semigroup)
 
 instance IsList Dependencies where
   type Item Dependencies = (String, DependencyVersion)
