@@ -12,7 +12,7 @@ import           Data.Bifunctor
 import           Data.Aeson.Config.FromValue
 
 newtype List a = List {fromList :: [a]}
-  deriving (Eq, Show, Functor, Foldable, Traversable, Monoid)
+  deriving (Eq, Show, Functor, Foldable, Traversable, Semigroup, Monoid)
 
 instance FromValue a => FromValue (List a) where
   fromValue v = List <$> case v of
